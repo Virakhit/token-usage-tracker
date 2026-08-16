@@ -2,7 +2,8 @@
 """Local HTTP server for Token Usage Tracker with a realtime Hermes usage endpoint.
 
 Run:
-    python local_server.py            # defaults to 127.0.0.1:8787
+    python local_server.py                     # defaults to 127.0.0.1:8787 (local only)
+    python local_server.py --host 0.0.0.0      # LAN-accessible: other machines on the network
     python local_server.py --port 9000
     python local_server.py --db C:/path/to/state.db
 
@@ -13,14 +14,32 @@ Endpoints:
 
 This server only READS Hermes state.db (read-only SQLite) and never sends
 API keys or system prompts out of this machine. Run it on the same machine
-that owns the Hermes state.db so the browser can sync realtime usage.
+that owns the Hermes state.db so the browser (on this or another LAN machine)
+can sync realtime usage.
+
+For LAN access, bind --host 0.0.0.0 so other machines can reach it, then open
+one of the printed http://<LAN-IP>:<port> URLs on the remote machine. Windows:
+a firewall prompt may appear the first time; allow it (private networks) so
+the port is reachable. The state.db is still read on THIS machine only.
 """
 import argparse
 import json
+import socket
 import sys
-from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+
+
+def lan_ip():
+    """Best-effort primary LAN IPv4 address (private range)."""
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(('10.255.255.255', 1))  # no packets sent
+        return s.getsockname()[0]
+    except OSError:
+        return None
+    finally:
+        s.close()
 
 # hermes_usage.py lives next to this file.
 _HERE = Path(__file__).resolve().parent
@@ -72,9 +91,13 @@ def main():
 
     TrackerHandler.db_path = args.db
     httpd = ThreadingHTTPServer((args.host, args.port), TrackerHandler)
-    where = f'http://{args.host}:{args.port}'
-    print(f'Token Usage Tracker (local) => {where}')
-    print(f'API: {where}/api/hermes-usage')
+    local = f'http://127.0.0.1:{args.port}'
+    print(f'Token Usage Tracker => {local}  (API: {local}/api/hermes-usage)')
+    if args.host in ('0.0.0.0', '::'):
+        ip = lan_ip()
+        lan = f'http://{ip}:{args.port}' if ip else '(ไม่พบ LAN IP)'
+        print(f'LAN accessible   => {lan}   <- เปิด URL นี้จากเครื่องอื่นใน network')
+        print('Windows: ถ้ายังเข้าไม่ได้ ให้ allow port ใน firewall (private networks).')
     print('Press Ctrl+C to stop.')
     try:
         httpd.serve_forever()

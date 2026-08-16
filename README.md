@@ -34,6 +34,42 @@ python local_server.py --port 9000      # เปลี่ยน port (default 87
 python local_server.py --db C:/path/state.db   # ระบุ path state.db เอง (default: อ่านอัตโนมัติ)
 ```
 
+## เข้าถึงจากเครื่องอื่น (ดูข้อมูล Hermes บนเครื่องอื่นใน network)
+
+`state.db` อยู่บนเครื่องที่รัน Hermes เท่านั้น — อีกเครื่องไม่ต้องมีไฟล์ ก็ดูข้อมูลได้โดยให้ server บนเครื่อง Hermes อ่านให้เอง
+
+### ทาง LAN (ตรงๆ, ง่าย)
+
+บนเครื่อง Hermes รัน bind ทุก interface:
+
+```bash
+python local_server.py --host 0.0.0.0
+# จะโชว์ URL แบบ http://<LAN-IP>:8787 ให้เอาไปเปิดจากเครื่องอื่น
+```
+
+- เปิด `http://192.168.x.x:8787` จากเครื่องอื่น → ปุ่ม Sync Hermes มีให้ใช้จริง (อ่าน state.db บนเครื่อง Hermes)
+- Windows: ครั้งแรกอาจขึ้น firewall prompt → ติ๊ก allow (private networks) เพื่อให้ port เข้าถึงได้
+- ⚠️ ใครก็ตามใน network ที่รู้ URL เข้าถึงข้อมูลได้ (อ่านได้อย่างเดียว ไม่เขียน) — เหมาะกับ network ไว้ใจ
+
+### ทาง SSH tunnel (ปลอดภัยกว่า, เปิดเฉพาะเครื่องที่ต้องการ)
+
+ไม่ต้องเปิด LAN ให้ทั้ง network — ผูกเฉพาะเครื่องที่อยากให้ดู:
+
+```bash
+# บนเครื่อง Hermes: รัน server ตามปกติ (127.0.0.1 เท่านั้น)
+python local_server.py
+
+# บนเครื่องปลายทาง: สร้าง tunnel มาเครื่อง Hermes (สมมติ user=verak, ip=192.168.1.254)
+ssh -L 8787:127.0.0.1:8787 verak@192.168.1.254
+
+# แล้วเปิดใน browser ฝั่งปลายทาง
+# http://127.0.0.1:8787
+```
+
+- browser ฝั่งปลายทางติดต่อกับ `127.0.0.1:8787` ของตัวเอง → tunnel ยิงไปที่ server บนเครื่อง Hermes
+- ปุ่ม Sync Hermes ทำงานตามปกติ (endpoint `/api/hermes-usage` มา path ผ่าน tunnel)
+- ตัวเครื่อง Hermes เอง**ไม่ต้องเปิด port 0.0.0.0** → ไม่ถูก expose ให้ทั้ง network (ต้องมี SSH server เปิดบนเครื่อง Hermes)
+
 ## ข้อควรระวัง / ขอบเขต
 
 - **Vercel ใช้ดูข้อมูล manual/import ที่คุณบันทึกเอง** — ไม่สามารถอ่าน `C:\Users\verak\AppData\Local\hermes\state.db` ในเครื่องได้
