@@ -10,14 +10,13 @@
   <main class="shell">
     <header class="topbar">
       <div>
-        <p class="eyebrow">LOCAL · PRIVATE · SIMPLE</p>
+        <p class="eyebrow">HERMES · LOCAL · READ-ONLY</p>
         <h1>Token Usage Tracker</h1>
-        <p class="muted">จด usage ของ API / model / provider ไว้ดูรวมในเครื่องนี้</p>
+        <p class="muted">ดู token ที่ Hermes Agent ใช้จริงจาก state.db ในเครื่อง</p>
       </div>
       <div class="actions">
         <button id="syncBtn" class="button sync" disabled title="เปิด local_server.py แล้วกดเพื่อ sync ข้อมูล Hermes จาก state.db">🔗 Sync Hermes</button>
         <button id="exportBtn" class="button secondary">Export CSV</button>
-        <button id="clearBtn" class="button danger">Clear all</button>
       </div>
     </header>
     <p id="syncStatus" class="sync-status" hidden></p>
@@ -30,37 +29,16 @@
       <article class="card stat"><span>Output tokens</span><strong id="outputTokens">0</strong></article>
     </section>
 
-    <section class="grid">
-      <form id="usageForm" class="card form-card">
-        <div class="section-heading"><h2>เพิ่มรายการ</h2><span class="pill">manual log</span></div>
-        <label>Provider<input name="provider" placeholder="เช่น OpenAI, Anthropic" required /></label>
-        <label>Model<input name="model" placeholder="เช่น gpt-5, claude-sonnet" required /></label>
-        <div class="two-col">
-          <label>Input tokens<input name="input" type="number" min="0" value="0" required /></label>
-          <label>Output tokens<input name="output" type="number" min="0" value="0" required /></label>
-        </div>
-        <div class="two-col">
-          <label>Cost (USD)<input name="cost" type="number" min="0" step="0.000001" value="0" /></label>
-          <label>Date<input name="date" type="date" required /></label>
-        </div>
-        <label>Note <span class="muted">(optional)</span><input name="note" placeholder="เช่น chatbot production" /></label>
-        <label>Import API response / log <span class="muted">(JSON, JSONL)</span><input id="logFile" type="file" accept=".json,.jsonl,.log,application/json,text/plain" /></label>
-        <p class="hint">รองรับ usage จาก OpenAI, Anthropic และ Gemini โดยไม่ต้องใส่ API key</p>
-        <button class="button primary" type="submit">+ Add usage</button>
-      </form>
-
-      <section class="card table-card">
-        <div class="section-heading"><h2>รายการ usage</h2><input id="search" class="search" placeholder="ค้นหา provider / model..." /></div>
-        <div class="table-wrap">
-          <table><thead><tr><th>Date</th><th>Source</th><th>Provider / model</th><th>Input</th><th>Output</th><th>Cache</th><th>Reason</th><th>Total</th><th>Cost</th><th></th></tr></thead>
-          <tbody id="usageRows"></tbody></table>
-          <div id="emptyState" class="empty">ยังไม่มีข้อมูล — เพิ่มรายการแรกทางซ้าย</div>
-        </div>
-      </section>
+    <section class="card table-card">
+      <div class="section-heading"><h2>รายการ usage</h2><input id="search" class="search" placeholder="ค้นหา provider / model..." /></div>
+      <div class="table-wrap">
+        <table><thead><tr><th>Date</th><th>Provider / model</th><th>Input</th><th>Output</th><th>Cache</th><th>Reason</th><th>Total</th><th>Cost</th></tr></thead>
+        <tbody id="usageRows"></tbody></table>
+        <div id="emptyState" class="empty">ยังไม่มีข้อมูล — กด Sync Hermes เพื่อดึงข้อมูล</div>
+      </div>
     </section>
-    <footer>ข้อมูลเก็บใน browser localStorage เท่านั้น · ไม่ได้ส่งไป server · Vercel ใช้ดู manual/import ได้ · Sync Hermes realtime ต้องเปิด local server</footer>
+    <footer>อ่านจาก state.db แบบ read-only · ไม่ได้ส่งข้อมูลออกนอกเครื่อง</footer>
   </main>
-  <script src="usage-parser.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
