@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Token Usage Tracker</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">LOCAL · PRIVATE · SIMPLE</p>
+        <h1>Token Usage Tracker</h1>
+        <p class="muted">จด usage ของ API / model / provider ไว้ดูรวมในเครื่องนี้</p>
+      </div>
+      <div class="actions">
+        <button id="exportBtn" class="button secondary">Export CSV</button>
+        <button id="clearBtn" class="button danger">Clear all</button>
+      </div>
+    </header>
+
+    <section class="stats" aria-label="สรุปการใช้งาน">
+      <article class="card stat"><span>Total tokens</span><strong id="totalTokens">0</strong></article>
+      <article class="card stat"><span>Requests</span><strong id="requestCount">0</strong></article>
+      <article class="card stat"><span>Input tokens</span><strong id="inputTokens">0</strong></article>
+      <article class="card stat"><span>Output tokens</span><strong id="outputTokens">0</strong></article>
+    </section>
+
+    <section class="grid">
+      <form id="usageForm" class="card form-card">
+        <div class="section-heading"><h2>เพิ่มรายการ</h2><span class="pill">manual log</span></div>
+        <label>Provider<input name="provider" placeholder="เช่น OpenAI, Anthropic" required /></label>
+        <label>Model<input name="model" placeholder="เช่น gpt-5, claude-sonnet" required /></label>
+        <div class="two-col">
+          <label>Input tokens<input name="input" type="number" min="0" value="0" required /></label>
+          <label>Output tokens<input name="output" type="number" min="0" value="0" required /></label>
+        </div>
+        <div class="two-col">
+          <label>Cost (USD)<input name="cost" type="number" min="0" step="0.000001" value="0" /></label>
+          <label>Date<input name="date" type="date" required /></label>
+        </div>
+        <label>Note <span class="muted">(optional)</span><input name="note" placeholder="เช่น chatbot production" /></label>
+        <button class="button primary" type="submit">+ Add usage</button>
+      </form>
+
+      <section class="card table-card">
+        <div class="section-heading"><h2>รายการ usage</h2><input id="search" class="search" placeholder="ค้นหา provider / model..." /></div>
+        <div class="table-wrap">
+          <table><thead><tr><th>Date</th><th>Provider / model</th><th>Input</th><th>Output</th><th>Total</th><th>Cost</th><th></th></tr></thead>
+          <tbody id="usageRows"></tbody></table>
+          <div id="emptyState" class="empty">ยังไม่มีข้อมูล — เพิ่มรายการแรกทางซ้าย</div>
+        </div>
+      </section>
+    </section>
+    <footer>ข้อมูลเก็บใน browser localStorage เท่านั้น · ไม่ได้ส่งไป server</footer>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
