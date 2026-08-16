@@ -37,6 +37,14 @@ form.addEventListener('submit', e => {
 });
 rows.addEventListener('click', e => { const id = e.target.dataset.id; if (!id) return; entries = entries.filter(x => x.id !== id); save(); render(); });
 search.addEventListener('input', render);
+document.querySelector('#logFile').addEventListener('change', async e => {
+  const file = e.target.files[0]; if (!file) return;
+  const imported = UsageParser.parseUsageText(await file.text());
+  const date = new Date().toISOString().slice(0, 10);
+  entries = [...imported.map(x => ({ ...x, id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`, date })), ...entries];
+  save(); render(); e.target.value = '';
+  alert(imported.length ? `นำเข้า ${imported.length} รายการแล้ว` : 'ไม่พบ usage ที่รองรับในไฟล์นี้');
+});
 document.querySelector('#clearBtn').addEventListener('click', () => { if (entries.length && confirm('ลบข้อมูลทั้งหมดใช่ไหม?')) { entries = []; save(); render(); } });
 document.querySelector('#exportBtn').addEventListener('click', () => {
   const head = ['date','provider','model','input_tokens','output_tokens','total_tokens','cost_usd','note'];

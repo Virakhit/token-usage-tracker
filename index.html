@@ -41,6 +41,8 @@
           <label>Date<input name="date" type="date" required /></label>
         </div>
         <label>Note <span class="muted">(optional)</span><input name="note" placeholder="เช่น chatbot production" /></label>
+        <label>Import API response / log <span class="muted">(JSON, JSONL)</span><input id="logFile" type="file" accept=".json,.jsonl,.log,application/json,text/plain" /></label>
+        <p class="hint">รองรับ usage จาก OpenAI, Anthropic และ Gemini โดยไม่ต้องใส่ API key</p>
         <button class="button primary" type="submit">+ Add usage</button>
       </form>
 
@@ -55,6 +57,7 @@
     </section>
     <footer>ข้อมูลเก็บใน browser localStorage เท่านั้น · ไม่ได้ส่งไป server</footer>
   </main>
+  <script src="usage-parser.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
