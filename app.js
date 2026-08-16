@@ -64,13 +64,25 @@ function setSync(msg, kind) {
 async function fetchHermes() {
   try {
     const res = await fetch(SYNC_URL, { cache: 'no-store' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+      // 404 = endpoint absent -> อยู่บน Vercel/static (ไม่มี local server) ไม่ใช่ความผิดพลาดจริง
+      if (res.status === 404) {
+        setSync('เปิด local server (python local_server.py) แล้วค่อย Sync — หน้านี้ใช้ดู manual/import ได้ตามปกติ', 'hint');
+      } else {
+        setSync(`Sync Hermes ล้มเหลว (HTTP ${res.status})`, 'err');
+      }
+      return;
+    }
     const data = await res.json();
     if (!data.ok) throw new Error(data.error || 'endpoint error');
     mergeHermes(data.sessions || []);
     setSync(`Sync สำเร็จ · ${data.count} session จาก Hermes state.db`, 'ok');
   } catch (err) {
-    setSync(`Sync Hermes ล้มเหลว (${err.message}) — ต้องเปิด local server ด้วย python local_server.py`, 'err');
+    if (/failed to fetch|networkerror|load failed/i.test(err.message || '')) {
+      setSync('เปิด local server (python local_server.py) แล้วค่อย Sync — หน้านี้ใช้ดู manual/import ได้ตามปกติ', 'hint');
+    } else {
+      setSync(`Sync Hermes ล้มเหลว (${err.message})`, 'err');
+    }
   }
 }
 function mergeHermes(sessions) {
@@ -91,7 +103,13 @@ syncBtn.addEventListener('click', fetchHermes);
 // Enable Sync button only when a local server answers /api/hermes-usage.
 function probeLocalServer() {
   fetch(SYNC_URL, { method: 'GET', cache: 'no-store' })
-    .then(() => {
+    .then(res => {
+      if (!res.ok) { // e.g. Vercel 404 -> no local server, keep button disabled
+        syncBtn.disabled = true;
+        syncBtn.title = 'เปิด local server (python local_server.py) เพื่อ enable Sync Hermes';
+        setSync('ยังเห็นข้อมูล Hermes ไม่ได้บนหน้านี้ — เปิด local server (python local_server.py) แล้วเปิด URL local นั้น', 'hint');
+        return;
+      }
       syncBtn.disabled = false;
       syncBtn.title = 'Sync ข้อมูล Hermes จาก state.db (ผ่าน local server)';
       autoFetch(); // server is up -> keep Hermes data fresh
